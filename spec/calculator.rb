@@ -1,7 +1,7 @@
 class Calculator
 
   def self.add input
-    Parser.new(input).addends.inject 0, :+
+    Parser.build(input).addends.inject 0, :+
   end
 end
 
@@ -9,9 +9,10 @@ class Parser
 
   attr_accessor :input
 
-  def initialize input
-    self.input = input
-    validate
+  def self.build(input)
+    return LongDelimiterParser.new(input) if input.start_with? "//["
+    return CustomDelimiterParser.new(input) if input.start_with? "//"
+    DefaultParser.new(input)
   end
 
   def validate
@@ -28,21 +29,57 @@ class Parser
   end
 
   def delimiters
-    [",", "\n", custom_delimiter].compact.flatten
+    raise "Derived classes must implement this" 
   end
 
   def input_body
-    return input unless input.start_with? "//"
-    i = input.index("\n") + 1
-    input[i..-1]
+    raise "Derived classes must implement this" 
   end
 
-  def custom_delimiter
-    return nil unless input.start_with? "//"
-    if input =~ /\[(.*)\]/
-      $1.split("][")
-    else
-      input[2]
-    end
+  protected
+
+  def initialize input
+    self.input = input
+    validate
+  end
+end
+
+class DefaultParser < Parser
+
+  def delimiters
+    [",", "\n"]
+  end
+
+  def input_body
+    input
+  end
+end
+
+class CustomDelimiterParser < Parser
+
+  def delimiters
+    [",", "\n", input[2]]
+  end
+
+  def input_body
+    input[4..-1]
+  end
+end
+
+class LongDelimiterParser < Parser
+
+  def delimiters
+    [",", "\n", custom_delimiters].flatten
+  end
+
+  def custom_delimiters
+    expression = /\[(.*)\]/ 
+    delims = input.match(expression)[1]
+    delims.split "]["
+  end
+
+  def input_body
+    i = input.index("\n") + 1
+    input[i..-1]
   end
 end

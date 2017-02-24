@@ -5,3 +5,8 @@ in the tests.  I've done this a few times now and it went smoothly.
 
 I'm mostly doing this so that I can use this as a base for trying to refactor into
 a strategy pattern.  
+
+EDIT: 
+
+This is after doing the refactor.  It went pretty smoothly and I'm happy.  This might
+be the way to go?
